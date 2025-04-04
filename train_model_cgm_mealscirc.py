@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
-
+import os
+import json
 import numpy as np
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
-
 from src.batch_loader import load_all_participants
 
 # 1️⃣ Hyperparameters
@@ -44,7 +44,7 @@ class GlucoseLSTM(nn.Module):
         out = out[:, -1, :]  # Take last time step
         return self.fc(out)
 
-model = GlucoseLSTM(input_dim=4, hidden_dim=HIDDEN_DIM)
+model = GlucoseLSTM(input_dim=9, hidden_dim=HIDDEN_DIM)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
@@ -86,3 +86,21 @@ print("\n📊 Evaluation on Test Set:")
 print(f"RMSE: {rmse:.4f}")
 print(f"MAE : {mae:.4f}")
 print(f"R²  : {r2:.4f}")
+
+
+# to name the model variant
+model_name = "cgm_mealscirc"  # <-- edit for each run
+
+# Ensure results directory exists
+os.makedirs("results", exist_ok=True)
+
+# Save predictions
+np.save(f"results/{model_name}_y_true.npy", np.array(all_targets))
+np.save(f"results/{model_name}_y_pred.npy", np.array(all_preds))
+
+# Save metrics
+metrics = {"RMSE": rmse, "MAE": mae, "R2": r2}
+with open(f"results/{model_name}_metrics.json", "w") as f:
+    json.dump(metrics, f)
+
+print(f"Results saved for model: {model_name}")

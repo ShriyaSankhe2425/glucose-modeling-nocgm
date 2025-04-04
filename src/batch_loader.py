@@ -28,7 +28,13 @@ def load_all_participants(data_dir='data/', window_size=4):
 
             try:
                 # Load and process one participant
-                X, y = load_actiheart_data(csv_path, window_size=window_size, include_glucose=True)
+                X, y = load_actiheart_data(
+                    csv_path,
+                    window_size=window_size,
+                    include_glucose=False,       # We're still running no-CGM input
+                    include_meal_flag=True       # Add meal ingestion feature
+                )
+
                 X_all.append(X)
                 y_all.append(y)
             except Exception as e:
