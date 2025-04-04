@@ -2,49 +2,46 @@ import os
 import numpy as np
 from src.preprocessing import load_actiheart_data
 
-def load_all_participants(data_dir='data/', window_size=4):
+def load_all_participants(data_dir='data/', window_size=4, model_name="nocgm_base"):
     """
-    Loads and processes Actiheart data from all valid participant CSVs.
+    Loads and combines data for all participants in the dataset folder.
 
     Parameters:
-        data_dir (str): Path to the folder containing all participant data files.
-        window_size (int): How many time steps to include in each input sequence.
+        data_dir (str): Path to directory containing CSV files (1 per participant)
+        window_size (int): Number of time steps per input sequence
+        model_name (str): Controls feature selection in preprocessing
 
     Returns:
-        X_all (np.ndarray): Combined input features from all participants.
-                            Shape = (total_samples, window_size, features)
-        y_all (np.ndarray): Combined target glucose values.
-                            Shape = (total_samples,)
+        X_all (np.array): Shape = (total_samples, window_size, num_features)
+        y_all (np.array): Shape = (total_samples,)
     """
-
     X_all, y_all = [], []
 
-    # Loop through every file in the data directory
     for filename in os.listdir(data_dir):
-        # Only load files that are CSV and contain "glucose_actiheart" in name
-        if filename.endswith(".csv") and "glucose_actiheart" in filename:
+        if filename.endswith(".csv") and "glucose_actiheart_integrated" in filename:
             csv_path = os.path.join(data_dir, filename)
-            print(f"📂 Loading {filename}...")
+            print(f"Loading {filename}...")
 
             try:
-                # Load and process one participant
+                # Call preprocessing function with model-specific feature selection
                 X, y = load_actiheart_data(
                     csv_path,
                     window_size=window_size,
-                    include_glucose=False,       # We're still running no-CGM input
-                    include_meal_flag=True       # Add meal ingestion feature
+                    model_name=model_name
                 )
-
                 X_all.append(X)
                 y_all.append(y)
+
             except Exception as e:
                 print(f"Failed to load {filename}: {e}")
 
-    # Combine all participants' data
+    if len(X_all) == 0:
+        raise RuntimeError("No participant data loaded — check file paths or errors above.")
+
+    # Concatenate data from all participants into one dataset
     X_all = np.concatenate(X_all, axis=0)
     y_all = np.concatenate(y_all, axis=0)
 
-    # Summary
     print("Finished loading all participants.")
     print("Final X shape:", X_all.shape)
     print("Final y shape:", y_all.shape)
