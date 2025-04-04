@@ -2,45 +2,38 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-def load_actiheart_data(csv_path, window_size=4, normalize=True):
+def load_actiheart_data(csv_path, window_size=4, normalize=True, include_glucose=False):
     """
-    Loads one participant's Actiheart data and prepares it for machine learning.
+    Loads a participant's Actiheart data and optionally includes CGM as an input feature.
     
     Parameters:
         csv_path (str): Path to the CSV file.
-        window_size (int): Number of 15-minute time steps in one input sequence.
-        normalize (bool): Whether to normalize input features using z-score.
+        window_size (int): Number of time steps to use for each input sequence.
+        normalize (bool): Whether to normalize features.
+        include_glucose (bool): If True, includes past glucose values in the input features.
 
     Returns:
-        X (np.ndarray): 3D array of shape (samples, window_size, features)
-                        Used as input to models like LSTM.
-        y (np.ndarray): 1D array of glucose values (Detrended) as target.
+        X (np.ndarray): Input data (samples, time_steps, features)
+        y (np.ndarray): Target glucose value at each time step
     """
-
-    # Load the CSV file into a DataFrame
     df = pd.read_csv(csv_path)
-
-    # Keep only valid rows (mask == False)
     df = df[df['mask'] == False].reset_index(drop=True)
 
-    # Define input features and target column
     features = ['Activity', 'BPM', 'RMSSD']
+    if include_glucose:
+        features.append('Detrended')  # Include glucose in X
+
     target = 'Detrended'
 
-    # Normalize features to mean=0, std=1
     if normalize:
+        from sklearn.preprocessing import StandardScaler
         scaler = StandardScaler()
         df[features] = scaler.fit_transform(df[features])
 
-    # Create sliding windows of size `window_size`
     X, y = [], []
     for i in range(window_size, len(df)):
-        # Take last `window_size` rows of features as input
         window = df[features].iloc[i - window_size:i].values
-        # Predict the glucose value at current time
-        glucose = df[target].iloc[i]
-
         X.append(window)
-        y.append(glucose)
+        y.append(df[target].iloc[i])  # still predict next glucose value
 
     return np.array(X), np.array(y)

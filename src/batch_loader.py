@@ -28,19 +28,19 @@ def load_all_participants(data_dir='data/', window_size=4):
 
             try:
                 # Load and process one participant
-                X, y = load_actiheart_data(csv_path, window_size=window_size)
+                X, y = load_actiheart_data(csv_path, window_size=window_size, include_glucose=True)
                 X_all.append(X)
                 y_all.append(y)
             except Exception as e:
-                print(f"❌ Failed to load {filename}: {e}")
+                print(f"Failed to load {filename}: {e}")
 
     # Combine all participants' data
     X_all = np.concatenate(X_all, axis=0)
     y_all = np.concatenate(y_all, axis=0)
 
     # Summary
-    print("✅ Finished loading all participants.")
-    print("🧠 Final X shape:", X_all.shape)
-    print("🎯 Final y shape:", y_all.shape)
+    print("Finished loading all participants.")
+    print("Final X shape:", X_all.shape)
+    print("Final y shape:", y_all.shape)
 
     return X_all, y_all

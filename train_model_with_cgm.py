@@ -44,7 +44,7 @@ class GlucoseLSTM(nn.Module):
         out = out[:, -1, :]  # Take last time step
         return self.fc(out)
 
-model = GlucoseLSTM(input_dim=3, hidden_dim=HIDDEN_DIM)
+model = GlucoseLSTM(input_dim=4, hidden_dim=HIDDEN_DIM)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
