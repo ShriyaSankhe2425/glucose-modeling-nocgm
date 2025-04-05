@@ -13,8 +13,9 @@ BATCH_SIZE = 32
 EPOCHS = 20
 LR = 0.001
 HIDDEN_DIM = 64
+
 # to name the model variant
-model_name = "nocgm_mealscirc"  # <-- edit for each run
+model_name = "nocgm_base"  # <-- edit for each run
 
 # 2️⃣ Load preprocessed data
 X, y = load_all_participants(data_dir='data/', window_size=WINDOW_SIZE, model_name=model_name)
@@ -47,7 +48,7 @@ class GlucoseLSTM(nn.Module):
         out = out[:, -1, :]  # Take last time step
         return self.fc(out)
 
-model = GlucoseLSTM(input_dim=8, hidden_dim=HIDDEN_DIM)
+model = GlucoseLSTM(input_dim=3, hidden_dim=HIDDEN_DIM)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
@@ -89,8 +90,6 @@ print("\n📊 Evaluation on Test Set:")
 print(f"RMSE: {rmse:.4f}")
 print(f"MAE : {mae:.4f}")
 print(f"R²  : {r2:.4f}")
-
-
 
 
 # Ensure results directory exists
